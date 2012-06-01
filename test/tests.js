@@ -44,21 +44,6 @@ test('stub: should trap calls for function', function() {
   deepEqual(obj.child.calls, [['a', 'b'], ['c', 'd']]);
 });
 
-test('empty object stub', function() {
-  var obj = { child: { name: 'A' } };
-  var stub = nuit.stub(obj, 'child');
-
-  ok(!obj.child.name);
-});
-
-test('reset an empty object stub', function() {
-  var obj = { child: { name: 'A' } };
-  var stub = nuit.stub(obj, 'child');
-  stub.reset();
-
-  equal(obj.child.name, 'A');
-});
-
 test('empty function stub', function() {
   var obj = { child: function() { return 'A'; } };
   var stub = nuit.stub(obj, 'child');
@@ -89,35 +74,70 @@ test('reset a stub a function returning a value', function() {
   equal(obj.child(), 'A');
 });
 
-test('stubAll', function() {
+test('stubAll: with one argument should empty stub all functions', function() {
   var obj = {
-    A: 'A',
-    B: { child: 'A' },
-    C: function() { return 'A'; }
+    a: 'a',
+    b: function() { return 'b'; },
+    c: function() { return 'c'; }
   };
 
   var stub = nuit.stubAll(obj);
 
-  notEqual(obj.A, 'A');
-  ok(!isFunction(obj.A));
-  notDeepEqual(obj.B, { child: 'A' });
-  ok(!isFunction(obj.B));
-  notEqual(obj.C(), 'A');
+  equal(obj.a, 'a');
+  equal(obj.b(), undefined);
+  equal(obj.c(), undefined);
+
+  stub.reset();
+  equal(obj.a, 'a');
+  equal(obj.b(), 'b');
+  equal(obj.c(), 'c');
 });
 
-test('reset stubAll', function() {
+test('stubAll: with map should only stub those specified', function() {
   var obj = {
-    A: 'A',
-    B: { child: 'A' },
-    C: function() { return 'A'; }
+    a: function() { return 'a'; },
+    b: function() { return 'b'; },
+    c: function() { return 'c'; },
+    d: function() { return 'd'; },
   };
 
-  var stub = nuit.stubAll(obj);
+  var stub = nuit.stubAll(obj, {
+    b: function() { return 'x'; },
+    c: function() { return 'y'; },
+    d: 'z'
+  });
+
+  equal(obj.a(), 'a');
+  equal(obj.b(), 'x');
+  equal(obj.c(), 'y');
+  equal(obj.d(), 'z');
+
   stub.reset();
 
-  equal(obj.A, 'A');
-  deepEqual(obj.B, { child: 'A' });
-  equal(obj.C(), 'A');
+  equal(obj.a(), 'a');
+  equal(obj.b(), 'b');
+  equal(obj.c(), 'c');
+  equal(obj.d(), 'd');
+});
+
+test('stubAll: with array of names should empty stub those with specified name', function() {
+  var obj = {
+    a: function() { return 'a'; },
+    b: function() { return 'b'; },
+    c: function() { return 'c'; }
+  };
+
+  var stub = nuit.stubAll(obj, ['b', 'c']);
+
+  equal(obj.a(), 'a');
+  equal(obj.b(), undefined);
+  equal(obj.c(), undefined);
+
+  stub.reset();
+
+  equal(obj.a(), 'a');
+  equal(obj.b(), 'b');
+  equal(obj.c(), 'c');
 });
 
 })();

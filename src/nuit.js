@@ -21,12 +21,16 @@
     return Object.prototype.toString.call(obj) == '[object Function]';
   };
 
+  var isArray = function(obj) {
+    return Object.prototype.toString.call(obj) == '[object Array]';
+  };
+
   var toArray = function(obj) {
     return Array.prototype.slice.apply(obj);
   };
 
-  var emptyFuncStub = function(){ return function() { }; };
-  var emptyObjStub = function(){ return {}; };
+  var emptyFuncStub = function() { return function() { }; };
+  var valueFuncStub = function(value) { return function() { return value; } };
 
   var setStub = function(context, name, stub) {
     if (isFunction(stub)) {
@@ -61,7 +65,7 @@
 
     // Set the default empty stub.
     if (arguments.length === 2) {
-      stub = isFunction(original) ? emptyFuncStub() : emptyObjStub();
+      stub = emptyFuncStub();
     }
 
     setStub(object, name, stub);
@@ -79,22 +83,57 @@
     };
   };
 
-  nuit.stubAll = function(object) {
+  nuit.stubAll = function(context, stubs) {
     var originals = {};
 
-    for (var key in object) {
-      if (has(object, key)) {
-        originals[key] = object[key];
+    // No stubs should empty stub all functions.
+    if (!stubs) { 
+      stubs = [];
 
-        var stub = isFunction(originals[key]) ? emptyFuncStub() : emptyObjStub();
-        setStub(object, key, stub);
+      for (var key in context) {
+        stubs.push(key);
+      }
+    }
+
+    if (isArray(stubs)) {
+      for (var i = 0; i < stubs.length; i++) {
+        var key = stubs[i];
+
+        if (!has(context, key) || !isFunction(context[key])) {
+          continue;
+        }
+
+        originals[key] = context[key];
+        setStub(context, key, emptyFuncStub());
+      }
+    }
+    else {
+      for (var key in stubs) {
+
+        if (!has(context, key) || !isFunction(context[key])) {
+          continue;
+        }
+
+        var stub;
+
+        // Stub with a custom function.
+        if (isFunction(stubs[key])) {
+          stub = stubs[key];
+        }
+        // Stub with an value.
+        else {
+          stub = valueFuncStub(stubs[key]);
+        }
+
+        originals[key] = context[key];
+        setStub(context, key, stub);
       }
     }
 
     return {
       reset: function() {
         for (var key in originals) {
-          setStub(object, key, originals[key]);
+          setStub(context, key, originals[key]);
         }
 
         return this;
