@@ -9,10 +9,6 @@
     return this;
   };
 
-  var setStub = function (object, name, func) {
-    object[name] = func;
-  };
-
   var has = function(obj, key) {
     return Object.prototype.hasOwnProperty.call(obj, key);
   };
@@ -25,8 +21,35 @@
     return Object.prototype.toString.call(obj) == '[object Function]';
   };
 
+  var toArray = function(obj) {
+    return Array.prototype.slice.apply(obj);
+  };
+
   var emptyFuncStub = function(){ return function() { }; };
   var emptyObjStub = function(){ return {}; };
+
+  var setStub = function(context, name, stub) {
+    if (isFunction(stub)) {
+      setFuncStub(context, name, stub);
+    }
+    else {
+      setObjectStub(context, name, stub);
+    }
+  };
+
+  var setObjectStub = function(context, name, stubObj) {
+    context[name] = stubObj;
+  };
+
+  var setFuncStub = function(context, name, stubFunc) {
+    var calls = [];
+    context[name] = function() {
+      var args = toArray(arguments);
+      calls.push(args);
+      return stubFunc.apply(this, args);
+    };
+    context[name].calls = calls;
+  };
 
   nuit.stub = function (object, name, stub) {
 

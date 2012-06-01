@@ -6,14 +6,14 @@ function isFunction(obj) {
   return Object.prototype.toString.call(obj) == '[object Function]';
 }
 
-test('stub an object', function() {
+test('stub: object', function() {
   var obj = { child: { name: 'A' } };
   var stub = nuit.stub(obj, 'child', { name: 'B' });
 
   equal(obj.child.name, 'B');
 });
 
-test('reset an object stub', function() {
+test('reset: object stub', function() {
   var obj = { child: { name: 'A' } };
   var stub = nuit.stub(obj, 'child', { name: 'B' });
   stub.reset();
@@ -21,19 +21,27 @@ test('reset an object stub', function() {
   equal(obj.child.name, 'A');
 });
 
-test('stub a function', function() {
+test('stub: function', function() {
   var obj = { child: function() { return 'A'; } };
   var stub = nuit.stub(obj, 'child', function() { return 'B'; });
 
   equal(obj.child(), 'B');
 });
 
-test('reset a function stub', function() {
+test('reset: function stub', function() {
   var obj = { child: function() { return 'A'; } };
   var stub = nuit.stub(obj, 'child', function() { return 'B'; });
   stub.reset();
 
   equal(obj.child(), 'A');
+});
+
+test('stub: should trap calls for function', function() {
+  var obj = { child: function() { return 'A'; } };
+  var stub = nuit.stub(obj, 'child', function() { return 'B'; });
+  obj.child('a', 'b');
+  obj.child('c', 'd');
+  deepEqual(obj.child.calls, [['a', 'b'], ['c', 'd']]);
 });
 
 test('empty object stub', function() {
@@ -81,7 +89,7 @@ test('reset a stub a function returning a value', function() {
   equal(obj.child(), 'A');
 });
 
-test('stub all', function() {
+test('stubAll', function() {
   var obj = {
     A: 'A',
     B: { child: 'A' },
@@ -97,7 +105,7 @@ test('stub all', function() {
   notEqual(obj.C(), 'A');
 });
 
-test('reset stub all', function() {
+test('reset stubAll', function() {
   var obj = {
     A: 'A',
     B: { child: 'A' },
