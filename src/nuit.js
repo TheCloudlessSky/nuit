@@ -114,11 +114,6 @@
     if (isArray(stubs)) {
       for (var i = 0; i < stubs.length; i++) {
         var key = stubs[i];
-
-        if (!isFunction(context[key])) {
-          continue;
-        }
-
         originals[key] = getOriginal(context, key);
         setStub(context, key, emptyFuncStub());
       }
