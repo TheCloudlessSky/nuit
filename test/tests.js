@@ -104,13 +104,15 @@ test('stubAll: with map should only stub those specified', function() {
   var stub = nuit.stubAll(obj, {
     b: function() { return 'x'; },
     c: function() { return 'y'; },
-    d: 'z'
+    d: 'z',
+    e: function() { return '1'; }
   });
 
   equal(obj.a(), 'a');
   equal(obj.b(), 'x');
   equal(obj.c(), 'y');
   equal(obj.d(), 'z');
+  equal(obj.e(), '1');
 
   stub.reset();
 
@@ -118,6 +120,7 @@ test('stubAll: with map should only stub those specified', function() {
   equal(obj.b(), 'b');
   equal(obj.c(), 'c');
   equal(obj.d(), 'd');
+  ok(!('e' in obj));
 });
 
 test('stubAll: with array of names should empty stub those with specified name', function() {

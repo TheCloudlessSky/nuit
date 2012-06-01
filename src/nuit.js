@@ -31,6 +31,7 @@
 
   var emptyFuncStub = function() { return function() { }; };
   var valueFuncStub = function(value) { return function() { return value; } };
+  var noOriginal = {};
 
   var setStub = function(context, name, stub) {
     if (isFunction(stub)) {
@@ -55,29 +56,44 @@
     context[name].calls = calls;
   };
 
-  nuit.stub = function (object, name, stub) {
-
-    var original = object[name];
-
-    if (isUndefined(original)) {
-      throw Error("The property '" + name + "' does not exist and can therefore not be stubbed.");
+  var getOriginal = function(context, key) {
+    if (key in context) {
+      return context[key];
     }
+    else {
+      return noOriginal;
+    }
+  };
+
+  var setOriginal = function(context, key, originals) {
+    if (originals[key] === noOriginal) {
+      delete context[key];
+    }
+    else {
+      context[key] = originals[key];
+    }
+  };
+
+  nuit.stub = function (context, name, stub) {
+
+    var originals = {};
+    originals[name] = getOriginal(context, name);
 
     // Set the default empty stub.
     if (arguments.length === 2) {
       stub = emptyFuncStub();
     }
 
-    setStub(object, name, stub);
+    setStub(context, name, stub);
 
     return {
       returns: function(value) {
-        setStub(object, name, function() { return value; });
+        setStub(context, name, function() { return value; });
         return this;
       },
 
       reset: function() {
-        object[name] = original;
+        setOriginal(context, name, originals);
         return this;
       }
     };
@@ -99,21 +115,16 @@
       for (var i = 0; i < stubs.length; i++) {
         var key = stubs[i];
 
-        if (!has(context, key) || !isFunction(context[key])) {
+        if (!isFunction(context[key])) {
           continue;
         }
 
-        originals[key] = context[key];
+        originals[key] = getOriginal(context, key);
         setStub(context, key, emptyFuncStub());
       }
     }
     else {
       for (var key in stubs) {
-
-        if (!has(context, key) || !isFunction(context[key])) {
-          continue;
-        }
-
         var stub;
 
         // Stub with a custom function.
@@ -125,7 +136,7 @@
           stub = valueFuncStub(stubs[key]);
         }
 
-        originals[key] = context[key];
+        originals[key] = getOriginal(context, key);
         setStub(context, key, stub);
       }
     }
@@ -133,7 +144,7 @@
     return {
       reset: function() {
         for (var key in originals) {
-          setStub(context, key, originals[key]);
+          setOriginal(context, key, originals);
         }
 
         return this;
