@@ -74,7 +74,7 @@
     }
   };
 
-  nuit.stub = function (context, name, stub) {
+  nuit.stub = function(context, name, stub) {
 
     var originals = {};
     originals[name] = getOriginal(context, name);
@@ -97,6 +97,10 @@
         return this;
       }
     };
+  };
+
+  nuit.pstub = function(context, name, stub) {
+    return nuit.stub(context.prototype, name, stub);
   };
 
   nuit.stubAll = function(context, stubs) {
@@ -145,6 +149,10 @@
         return this;
       }
     };
+  };
+
+  nuit.pstubAll = function(context, stubs) {
+    return nuit.stubAll(context.prototype, stubs);
   };
 
 })(this);
