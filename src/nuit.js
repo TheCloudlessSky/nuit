@@ -100,7 +100,7 @@
   };
 
   nuit.pstub = function(context, name, stub) {
-    return nuit.stub(context.prototype, name, stub);
+    return nuit.stub(context.constructor.prototype, name, stub);
   };
 
   nuit.stubAll = function(context, stubs) {
@@ -152,7 +152,7 @@
   };
 
   nuit.pstubAll = function(context, stubs) {
-    return nuit.stubAll(context.prototype, stubs);
+    return nuit.stubAll(context.constructor.prototype, stubs);
   };
 
 })(this);

@@ -36,6 +36,18 @@ test('reset: function stub', function() {
   equal(obj.child(), 'A');
 });
 
+test('pstub: function', function() {
+  var Child = function() { };
+  Child.prototype.a = function() { return 'a'; };
+
+  var child = new Child();
+
+  var stub = nuit.pstub(child, 'a', function() { return 'x'; });
+  equal(child.a(), 'x');
+  stub.reset();
+  equal(child.a(), 'a');
+})
+
 test('stub: should trap calls for function', function() {
   var obj = { child: function() { return 'A'; } };
   var stub = nuit.stub(obj, 'child', function() { return 'B'; });
@@ -83,7 +95,7 @@ test('stubAll: with one argument should empty stub all functions', function() {
 
   var stub = nuit.stubAll(obj);
 
-  equal(obj.a, 'a');
+  equal(obj.a(), undefined);
   equal(obj.b(), undefined);
   equal(obj.c(), undefined);
 
